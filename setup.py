@@ -19,7 +19,7 @@ with open('README.rst', 'r') as f:
 setup(name = 'reiterable',
       version = get_version(),
       packages = ['reiterable'],
-      description = 'Wraps any iterable into a multi-usage iterable',
+      description = 'Wrap any iterable into a multi-usage iterable',
       long_description = README,
       author='Pierre-Antoine Champin',
       license='LGPL v3',

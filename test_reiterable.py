@@ -1,4 +1,6 @@
 import pytest
+import threading
+import time
 
 from reiterable import reiterable
 
@@ -57,4 +59,32 @@ def test_only_one_argument():
     assert l1 == l2
     assert l2 == l3
     assert l1 == l3
+
+def slow_iterator():
+    yield 1
+    time.sleep(.1)
+    yield 2
+    time.sleep(.1)
+    yield 4
+    time.sleep(.1)
+    yield 5
+
+def fill_with(lst, iterable):
+    for i in iterable:
+        lst.append(i)
+    
+def test_thread_safe():
+    it = reiterable(slow_iterator(), thread_safe=True)
+    l1 = []
+    t1 = threading.Thread(target=fill_with, args=(l1, it))
+    l2 = []
+    t2 = threading.Thread(target=fill_with, args=(l2, it))
+
+    t1.start()
+    time.sleep(.1)
+    t2.start()
+    t1.join()
+    t2.join()
+
+    assert l1 == l2
     

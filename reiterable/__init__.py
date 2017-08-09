@@ -45,39 +45,25 @@ class _ReiterableWrapper(object):
         self._it = it
         self._start = []
 
+    def _get_item(self, i, start):
+        if i >= len(start):
+            assert i == len(start) # else, how would we have reached this index?
+            start.append(next(self._it))
+        return start[i]
+
     def __iter__(self):
-        return _ReiterableIterator(self)
-
-class _ReiterableIterator(object):
-    def __init__(self, wrapper):
-        self._wrapper = wrapper
-        self._next = 0
-
-    def __next__(self):
-        _start = self._wrapper._start
-        if self._next >= len(_start):
-            assert self._next == len(_start) # else, how would have reached this index?
-            _start.append(next(self._wrapper._it))
-        ret = _start[self._next]
-        self._next += 1
-        return ret
-
-    if sys.version_info.major < 3:
-        def next(self):
-            return self.__next__()
+        i = 0
+        start = self._start
+        while True:
+            yield self._get_item(i, start)
+            i += 1
 
 
 class _ReiterableWrapperTS(_ReiterableWrapper):
-    def __iter__(self):
-        return _ReiterableIteratorTS(self)
-
-class _ReiterableIteratorTS(_ReiterableIterator):
-    """A thread-safe variant of _ReiterableIterator"""
-    def __init__(self, wrapper):
-        _ReiterableIterator.__init__(self, wrapper)
+    def __init__(self, it):
+        _ReiterableWrapper.__init__(self, it)
         self._lock = threading.Lock()
 
-    def __next__(self):
+    def _get_item(self, i, start):
         with self._lock:
-            return _ReiterableIterator.__next__(self)
-    
+            return _ReiterableWrapper._get_item(self, i, start)
